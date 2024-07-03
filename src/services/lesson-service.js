@@ -3,13 +3,26 @@ import { ObjectId } from 'mongodb'; // Import ObjectId
 
 export async function createLesson(lessonData) {
   try {
+    const { day, startTime } = lessonData;
+    
+    const existingLesson = await Lesson.findOne({ day: day, startTime: startTime });
+    
+    if (existingLesson) {
+      throw new Error('שיעור כבר קבוע בשעה ויום זה');
+    }
+    
     const lesson = new Lesson(lessonData);
     const savedLesson = await lesson.save();
     return savedLesson;
   } catch (error) {
-    throw new Error('Could not create lesson');
+    if (error.message === 'שיעור כבר קבוע בשעה ויום זה') {
+      throw error;
+    } else {
+      throw new Error('Could not create lesson');
+    }
   }
 }
+
 
 export async function createWeeklyLessons(lessonData, repeatEndDate) {
   const createdLessons = [];
@@ -60,21 +73,56 @@ export async function deleteLesson(lessonId, deleteAll) {
       await Lesson.findByIdAndDelete(lessonId);
     }
   } catch (error) {
+    console.log(error)
     throw new Error('Could not delete lesson');
   }
 }
 
 export async function getLessonsForWeek(startOfWeek) {
+  // Ensure startOfWeek is a Date object
+  if (!(startOfWeek instanceof Date)) {
+    startOfWeek = new Date(startOfWeek);
+  }
+  console.log('service startOfWeek: ', startOfWeek);
+  console.log('type of startOfWeek: ', typeof startOfWeek);
+
   try {
+    // Create endOfWeek based on startOfWeek
     const endOfWeek = new Date(startOfWeek);
     endOfWeek.setDate(startOfWeek.getDate() + 6);
+
+    // Log the computed endOfWeek
+    console.log('computed endOfWeek: ', endOfWeek);
+
+    // Ensure both startOfWeek and endOfWeek are in UTC
+    const startOfWeekUTC = new Date(Date.UTC(
+      startOfWeek.getFullYear(), 
+      startOfWeek.getMonth(), 
+      startOfWeek.getDate()
+    ));
+    const endOfWeekUTC = new Date(Date.UTC(
+      endOfWeek.getFullYear(), 
+      endOfWeek.getMonth(), 
+      endOfWeek.getDate()
+    ));
+
+    // Log UTC dates
+    console.log('startOfWeekUTC: ', startOfWeekUTC);
+    console.log('endOfWeekUTC: ', endOfWeekUTC);
+
+    // Fetch lessons within the week range
     const lessons = await Lesson.find({
-      day: { $gte: startOfWeek, $lte: endOfWeek }
+      day: { $gte: startOfWeekUTC, $lte: endOfWeekUTC }
     });
+
+    // Log the lessons fetched
+    console.log('service lessons: ', lessons);
 
     return lessons;
   } catch (error) {
+    console.log('service error: ', error);
     throw new Error('Could not fetch lessons for the week');
   }
 }
+
 

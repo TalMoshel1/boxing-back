@@ -47,10 +47,14 @@ export async function requestPrivateLesson(req,res) {
 export async function getWeeklyLessons(req, res) {
   const { startOfWeek } = req.body;
 
+  console.log('start of the week: ',startOfWeek)
+
   try {
     const lessons = await lessonService.getLessonsForWeek(new Date(startOfWeek));
+    console.log(lessons)
     res.status(200).json(lessons);
   } catch (error) {
+    console.log('error: ',error)
     res.status(500).json({ message: error.message });
   }
 }

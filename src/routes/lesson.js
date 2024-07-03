@@ -12,6 +12,6 @@ router.put('/:lessonId,', authenticateToken, lessonController.updateLesson);
 
 router.delete('/:lessonId', authenticateToken, lessonController.deleteLesson);
 
-router.get('/week', authenticateToken, lessonController.getWeeklyLessons);
+router.post('/week', lessonController.getWeeklyLessons);
 
 export default router;
