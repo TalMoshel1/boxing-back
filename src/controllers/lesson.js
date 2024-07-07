@@ -3,7 +3,20 @@ import { ObjectId } from 'mongodb';
 
 export async function createLesson(req, res) {
   const { name, trainer, description, day, startTime, endTime, repeatsWeekly, repeatEndDate } = req.body;
-  const lessonData = { name, trainer, description, day: new Date(day), startTime, endTime, repeatsWeekly, type: 'group', isApproved: true };
+
+  const parsedRepeatEndDate = repeatsWeekly ? (repeatEndDate ? new Date(repeatEndDate) : null) : null;
+
+  const lessonData = {
+    name,
+    trainer,
+    description,
+    day: new Date(day),
+    startTime,
+    endTime,
+    repeatsWeekly,
+    type: 'group',
+    isApproved: true
+  };
 
   try {
     if (!(name && trainer && day && startTime && endTime)) {
@@ -15,9 +28,20 @@ export async function createLesson(req, res) {
 
     if (repeatsWeekly) {
       const repeatedIndex = new ObjectId(); 
-      additionalLessons = await lessonService.createWeeklyLessons({ ...lessonData, repeatedIndex }, new Date(repeatEndDate));
+
+      if (parsedRepeatEndDate) {
+        const isConflict = await lessonService.checkRepeatedLesson({ ...lessonData, repeatedIndex }, parsedRepeatEndDate);
+        if (isConflict) {
+          throw new Error('כבר קבועים שיעורים באחד ממועדים אלו');
+        }
+      }
+      additionalLessons = await lessonService.createWeeklyLessons({ ...lessonData, repeatedIndex }, parsedRepeatEndDate);
       createdLesson = await lessonService.createLesson({ ...lessonData, repeatedIndex });
     } else {
+      const isConflict = await lessonService.checkRepeatedLesson({ ...lessonData });
+      if (isConflict) {
+        throw new Error('קבוע לך שיעור במועד זה')
+      }
       createdLesson = await lessonService.createLesson(lessonData);
     }
 
@@ -27,11 +51,13 @@ export async function createLesson(req, res) {
 
     res.status(201).json(createdLesson);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: error.message });
   }
 }
 
 export async function requestPrivateLesson(req,res) {
+  console.log('ok!!!')
   const { day, startTime, endTime, studentName, studentPhone, studentMail } = req.body;
   const lessonData = {day, startTime, endTime, studentName, studentPhone, studentMail}
 
@@ -47,11 +73,8 @@ export async function requestPrivateLesson(req,res) {
 export async function getWeeklyLessons(req, res) {
   const { startOfWeek } = req.body;
 
-  console.log('start of the week: ',startOfWeek)
-
   try {
     const lessons = await lessonService.getLessonsForWeek(new Date(startOfWeek));
-    console.log(lessons)
     res.status(200).json(lessons);
   } catch (error) {
     console.log('error: ',error)

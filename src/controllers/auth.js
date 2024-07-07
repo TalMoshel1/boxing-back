@@ -2,6 +2,7 @@ import { serviceSignIn } from "../services/auth.js";
 import { createUser } from "../services/users.js";
 import { User } from "../models/user.js";
 import crypto from "crypto";
+import jwt from 'jsonwebtoken';
 import { messageService } from "../services/message.js";
 
 export async function registration(req, res) {
@@ -22,7 +23,6 @@ export async function registration(req, res) {
         role,
         email
       );
-      console.log('user: ', createdUser)
       return res.status(201).json(createdUser);
     } else {
       return res.status(400).json({ message: "Invalid parameters provided" });
@@ -38,8 +38,8 @@ export async function registration(req, res) {
 export async function signIn(req, res) {
   try {
     const { email, password } = req.body;
-    const token = await serviceSignIn(email, password);
-    res.json({ token });
+    const data = await serviceSignIn(email, password);
+    res.json({ data });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -98,4 +98,22 @@ export async function resetPasswordPhone(req, res) {
       .status(500)
       .json({ message: "Error resetting password", error: error.message });
   }
+}
+
+export function isTokenExpired(req, res) {
+  const authHeader = req.headers['authorization'];
+  if (!authHeader) {
+    return res.status(401).json({ message: 'Token is missing' });
+  }
+
+  
+
+  jwt.verify(authHeader, process.env.JWT_Secret_Key, (err, user) => {
+    if (err) {
+      return res.status(403).json({ message: 'Token is invalid or expired' });
+    }
+    return res.status(200).json({ message: 'Token is valid' });
+
+
+  });
 }

@@ -24,7 +24,6 @@ function _registration() {
       }
       if (username && password && phone && email) {
         const createdUser = yield createUser(username, password, phone, role, email);
-        console.log('user: ', createdUser);
         return res.status(201).json(createdUser);
       } else {
         return res.status(400).json({

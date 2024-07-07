@@ -37,4 +37,3 @@ connectToDb().then(() => {
   app.listen(PORT, () => console.log(`App listening at port ${PORT}`));
   console.log('CORS is waiting for requests from: ', allowedOrigins.join(', '));
 });
-console.log('')

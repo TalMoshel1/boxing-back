@@ -33,7 +33,6 @@ export async function createWeeklyLessons(lessonData, repeatEndDate) {
     throw new Error('Invalid repeatEndDate');
   }
 
-  // Skip the initial lesson day
   currentLessonDate.setDate(currentLessonDate.getDate() + 7);
 
   while (currentLessonDate <= repeatEndDate) {
@@ -46,6 +45,33 @@ export async function createWeeklyLessons(lessonData, repeatEndDate) {
   }
 
   return createdLessons;
+}
+
+export async function checkRepeatedLesson(lessonData, repeatEndDate) {
+  const lessonDayOfWeek = new Date(lessonData.day).toLocaleString('en-us', { weekday: 'short' });
+  const startTime = lessonData.startTime;
+  const endTime = lessonData.endTime;
+
+  if (repeatEndDate) {
+    const existingLesson = await Lesson.findOne({
+      dayOfWeek: lessonDayOfWeek,
+      startTime,
+      endTime,
+      day: { $gte: lessonData.day, $lte: repeatEndDate }
+    });
+  
+    return existingLesson;
+  }
+
+  const existingLesson = await Lesson.findOne({
+    dayOfWeek: lessonData.day,
+    startTime,
+    endTime
+  });
+
+  return existingLesson;
+
+
 }
 
 export async function updateLesson(id, updatedLessonData) {
@@ -79,12 +105,10 @@ export async function deleteLesson(lessonId, deleteAll) {
 }
 
 export async function getLessonsForWeek(startOfWeek) {
-  // Ensure startOfWeek is a Date object
   if (!(startOfWeek instanceof Date)) {
     startOfWeek = new Date(startOfWeek);
   }
-  console.log('service startOfWeek: ', startOfWeek);
-  console.log('type of startOfWeek: ', typeof startOfWeek);
+
 
   try {
     // Create endOfWeek based on startOfWeek
@@ -92,7 +116,6 @@ export async function getLessonsForWeek(startOfWeek) {
     endOfWeek.setDate(startOfWeek.getDate() + 6);
 
     // Log the computed endOfWeek
-    console.log('computed endOfWeek: ', endOfWeek);
 
     // Ensure both startOfWeek and endOfWeek are in UTC
     const startOfWeekUTC = new Date(Date.UTC(
@@ -107,8 +130,7 @@ export async function getLessonsForWeek(startOfWeek) {
     ));
 
     // Log UTC dates
-    console.log('startOfWeekUTC: ', startOfWeekUTC);
-    console.log('endOfWeekUTC: ', endOfWeekUTC);
+
 
     // Fetch lessons within the week range
     const lessons = await Lesson.find({
@@ -116,7 +138,6 @@ export async function getLessonsForWeek(startOfWeek) {
     });
 
     // Log the lessons fetched
-    console.log('service lessons: ', lessons);
 
     return lessons;
   } catch (error) {
