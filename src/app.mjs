@@ -13,7 +13,6 @@ const app = express();
 const allowedOrigins = ['http://localhost:3001', 'https://boxing-front.onrender.com'];
 
 // Debug: Log allowedOrigins to verify its content
-console.log('Allowed origins:', allowedOrigins);
 
 const corsOptions = {
   origin: function (origin, callback) {
