@@ -67,6 +67,7 @@ export async function createLesson(req, res) {
         ...lessonData,
       });
       if (isConflict) {
+        console.log(isConflict)
         throw new Error("קבוע לך שיעור במועד זה");
       }
       createdLesson = await lessonService.createLesson(lessonData);

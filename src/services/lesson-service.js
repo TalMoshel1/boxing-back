@@ -50,17 +50,23 @@ export async function checkRepeatedLesson(lessonData, repeatEndDate) {
       dayOfWeek: lessonDayOfWeek,
       startTime,
       endTime,
-      day: { $gte: lessonData.day, $lte: repeatEndDate }
+      day: { $gte: lessonData.day, $lte: repeatEndDate },
+      isApproved: true
     });
   
+    console.log('repeat end date: ',existingLesson)
     return existingLesson;
   }
 
   const existingLesson = await Lesson.findOne({
-    dayOfWeek: lessonData.day,
     startTime,
-    endTime
+    endTime,
+    day: lessonData.day,
+    isApproved: true
+
   });
+
+
 
   return existingLesson;
 }
