@@ -3,14 +3,8 @@ import { ObjectId } from 'mongodb'; // Import ObjectId
 
 export async function createLesson(lessonData) {
   try {
-    const { day, startTime } = lessonData;
-    
+    let { day, startTime } = lessonData;
     const existingLesson = await Lesson.findOne({ day: day, startTime: startTime });
-    
-    if (existingLesson) {
-      throw new Error('שיעור כבר קבוע בשעה ויום זה');
-    }
-    
     const lesson = new Lesson(lessonData);
     const savedLesson = await lesson.save();
     return savedLesson;
@@ -18,11 +12,10 @@ export async function createLesson(lessonData) {
     if (error.message === 'שיעור כבר קבוע בשעה ויום זה') {
       throw error;
     } else {
-      throw new Error('Could not create lesson');
+      throw new Error(error);
     }
   }
 }
-
 
 export async function createWeeklyLessons(lessonData, repeatEndDate) {
   const createdLessons = [];
@@ -70,8 +63,41 @@ export async function checkRepeatedLesson(lessonData, repeatEndDate) {
   });
 
   return existingLesson;
+}
 
+export async function doesApprovePossible(lessonId) {
 
+  const existingLesson = await Lesson.findOne({ _id: lessonId });
+
+  if (existingLesson) {
+    const { startTime, endTime, day } = existingLesson;
+
+    const existingLessonDate = new Date(day);
+    const existingYear = existingLessonDate.getFullYear();
+    const existingMonth = existingLessonDate.getMonth() + 1; 
+    const existingDate = existingLessonDate.getDate();
+
+    const duplicateLesson = await Lesson.findOne({
+      startTime,
+      endTime,
+      isApproved: true,
+      $expr: {
+        $and: [
+          { $eq: [{ $year: "$day" }, existingYear] },
+          { $eq: [{ $month: "$day" }, existingMonth] },
+          { $eq: [{ $dayOfMonth: "$day" }, existingDate] }
+        ]
+      }
+    });
+
+    if (duplicateLesson) {
+      return false
+    } else {
+      console.log(true)
+
+      return true
+    }
+  }
 }
 
 export async function updateLesson(id, updatedLessonData) {
@@ -109,15 +135,10 @@ export async function getLessonsForWeek(startOfWeek) {
     startOfWeek = new Date(startOfWeek);
   }
 
-
   try {
-    // Create endOfWeek based on startOfWeek
     const endOfWeek = new Date(startOfWeek);
     endOfWeek.setDate(startOfWeek.getDate() + 6);
 
-    // Log the computed endOfWeek
-
-    // Ensure both startOfWeek and endOfWeek are in UTC
     const startOfWeekUTC = new Date(Date.UTC(
       startOfWeek.getFullYear(), 
       startOfWeek.getMonth(), 
@@ -129,20 +150,48 @@ export async function getLessonsForWeek(startOfWeek) {
       endOfWeek.getDate()
     ));
 
-    // Log UTC dates
-
-
-    // Fetch lessons within the week range
     const lessons = await Lesson.find({
       day: { $gte: startOfWeekUTC, $lte: endOfWeekUTC }
     });
 
-    // Log the lessons fetched
+    lessons.sort((a, b) => {
+      const dateA = new Date(a.day);
+      const dateB = new Date(b.day);
+      const timeA = a.startTime.split(':').map(Number);
+      const timeB = b.startTime.split(':').map(Number);
+      const dateTimeA = new Date(dateA.setHours(timeA[0], timeA[1]));
+      const dateTimeB = new Date(dateB.setHours(timeB[0], timeB[1]));
+      return dateTimeA - dateTimeB;
+    });
 
     return lessons;
   } catch (error) {
     console.log('service error: ', error);
     throw new Error('Could not fetch lessons for the week');
+  }
+}
+
+
+
+export async function approveLessonById(lessonId) {
+  console.log(lessonId)
+  try {
+    const updatedLesson = await Lesson.findByIdAndUpdate(
+      lessonId,
+      { isApproved: true },
+      { new: true }
+    );
+
+    if (!updatedLesson) {
+      throw new Error('Lesson not found');
+    }
+
+    console.log('updated lesson: ',updatedLesson)
+
+    return updatedLesson;
+  } catch (error) {
+    console.error('Error approving lesson:', error);
+    throw error;
   }
 }
 

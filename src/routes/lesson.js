@@ -8,6 +8,8 @@ router.post('/group', authenticateToken, lessonController.createLesson);
 
 router.post('/requestPrivateLesson', lessonController.requestPrivateLesson);
 
+router.put('/approveLink/:lessonId', authenticateToken, lessonController.approvePrivateLesson)
+
 router.put('/:lessonId,', authenticateToken, lessonController.updateLesson);
 
 router.delete('/:lessonId', authenticateToken, lessonController.deleteLesson);
