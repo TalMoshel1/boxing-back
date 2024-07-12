@@ -15,7 +15,9 @@ const lessonSchema = new Schema({
   studentPhone: {type: String}, /* only required for private */
   studentMail: {type: String}, /* only required for private */
   type: {type: String, default:'private'},
-  isApproved: {type: Boolean, default: false }
+  isApproved: {type: Boolean, default: false },
+  dayOfWeek: { type: String, default: false }, // required only for group 
+
 });
 
 export const Lesson = mongoose.model('Lesson', lessonSchema);

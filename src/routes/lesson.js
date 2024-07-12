@@ -4,7 +4,7 @@ import * as lessonController from '../controllers/lesson.js';
 
 const router = express.Router();
 
-router.post('/group', authenticateToken, lessonController.createLesson);
+router.post('/group', lessonController.createLesson);
 
 router.post('/requestPrivateLesson', lessonController.requestPrivateLesson);
 

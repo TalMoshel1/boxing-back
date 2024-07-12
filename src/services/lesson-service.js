@@ -22,7 +22,10 @@ export async function createWeeklyLessons(lessonData, repeatEndDate) {
   let currentLessonDate = new Date(lessonData.day);
   const repeatedIndex = lessonData.repeatedIndex || new ObjectId(); 
 
+  console.log(repeatEndDate)
+
   if (!(repeatEndDate instanceof Date) || isNaN(repeatEndDate)) {
+
     throw new Error('Invalid repeatEndDate');
   }
 
@@ -40,8 +43,10 @@ export async function createWeeklyLessons(lessonData, repeatEndDate) {
   return createdLessons;
 }
 
+
 export async function checkRepeatedLesson(lessonData, repeatEndDate) {
-  const lessonDayOfWeek = new Date(lessonData.day).toLocaleString('en-us', { weekday: 'short' });
+  const lessonDay = new Date(lessonData.day);
+  const lessonDayOfWeek = lessonDay.toLocaleString('en-us', { weekday: 'short' });
   const startTime = lessonData.startTime;
   const endTime = lessonData.endTime;
 
@@ -50,23 +55,22 @@ export async function checkRepeatedLesson(lessonData, repeatEndDate) {
       dayOfWeek: lessonDayOfWeek,
       startTime,
       endTime,
-      day: { $gte: lessonData.day, $lte: repeatEndDate },
+      day: { $gte: new Date(lessonDay.getFullYear(), lessonDay.getMonth(), lessonDay.getDate()), $lte: new Date(repeatEndDate) },
       isApproved: true
     });
-  
-    console.log('repeat end date: ',existingLesson)
+    console.log('ok!!!')
     return existingLesson;
   }
 
   const existingLesson = await Lesson.findOne({
     startTime,
     endTime,
-    day: lessonData.day,
+    day: {
+      $gte: new Date(lessonDay.getFullYear(), lessonDay.getMonth(), lessonDay.getDate()),
+      $lte: new Date(lessonDay.getFullYear(), lessonDay.getMonth(), lessonDay.getDate(), 23, 59, 59) // Assuming end of day
+    },
     isApproved: true
-
   });
-
-
 
   return existingLesson;
 }
@@ -99,7 +103,6 @@ export async function doesApprovePossible(lessonId) {
     if (duplicateLesson) {
       return false
     } else {
-      console.log(true)
 
       return true
     }
