@@ -174,8 +174,9 @@ export async function createLesson(req, res) {
 }
 
 export async function requestPrivateLesson(req, res) {
-  const { day, startTime, endTime, studentName, studentPhone, studentMail } =
-    req.body;
+  const { day, startTime, endTime, studentName, studentPhone, studentMail, trainer } =
+    req.body; 
+
   const lessonData = {
     day,
     startTime,
@@ -183,24 +184,30 @@ export async function requestPrivateLesson(req, res) {
     studentName,
     studentPhone,
     studentMail,
+    trainer
   };
 
   if (
-    !(day && startTime && endTime && studentName && studentPhone && studentMail)
+    !(day && startTime && endTime && studentName && studentPhone && studentMail && trainer)
   ) {
-    return res.status(400).json({ message: "Fill in all required fields" });
+    return res.status(400).json({ message: "מלא את כל השדות" });
   }
   const createRequest = await lessonService.createLesson(lessonData);
 
+
   if (createRequest) {
     const emailBody = `
-    <p>נשלחה בקשה לאימון אישי ע"י:<br/>
-    ${studentName}, <br/>
-    ${studentMail}, <br/>
-    ${studentPhone}.<br/>
-    אם אתה רוצה לאשר את האימון,
-    פתח את הלינק הבא:</p>
-    <a href="http://localhost:3001/api/lessons/approveLink/${createRequest._id}" style="color: blue;">http://localhost:3001/approveLink/${createRequest._id}</a>
+    פלאפון:
+    ${studentPhone}.
+    מאמן:
+    ${trainer}.
+    יום:
+    ${day}
+    שעות: 
+    ${startTime} - ${endTime}.
+
+   לאישור האימון, פתח קישור:
+    http://localhost:3001/approveLink/${createRequest._id}
   `;
 
     const sendEmailToApprove = await messageService(

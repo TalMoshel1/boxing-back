@@ -163,6 +163,8 @@ export async function getLessonsForWeek(startOfWeek) {
       day: { $gte: startOfWeekUTC, $lte: endOfWeekUTC }
     });
 
+    console.log('lessons: ', lessons)
+
     lessons.sort((a, b) => {
       const dateA = new Date(a.day);
       const dateB = new Date(b.day);
