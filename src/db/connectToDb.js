@@ -9,7 +9,7 @@ async function connectToDb() {
   const MONGODB_PASSWORD= process.env.MONGODB_PASSWORD
 
     try {
-      mongoose.connect(`mongodb+srv://talmoshel444:${MONGODB_PASSWORD}@cluster0.snefe8v.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`)
+      mongoose.connect(`mongodb+srv://talmoshel444:${MONGODB_PASSWORD}@cluster0.glnctvn.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`)
       .then((res)=>{
         console.log('connected to DB!')
         return res

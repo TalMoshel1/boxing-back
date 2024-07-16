@@ -2,90 +2,6 @@ import * as lessonService from "../services/lesson-service.js";
 import { ObjectId } from "mongodb";
 import { messageService } from "../services/message.js";
 
-// export async function createLesson(req, res) {
-//   const {
-//     name,
-//     trainer,
-//     description,
-//     day,
-//     startTime,
-//     endTime,
-//     repeatsWeekly,
-//     repeatEndDate,
-//   } = req.body;
-
-
-
-//   const parsedRepeatEndDate = repeatsWeekly
-//     ? repeatEndDate
-//       ? new Date(repeatEndDate)
-//       : null
-//     : null;
-
-//   const lessonData = {
-//     name,
-//     trainer,
-//     description,
-//     day: new Date(day),
-//     startTime,
-//     endTime,
-//     repeatsWeekly,
-//     type: "group",
-//     isApproved: true,
-//   };
-
-//   try {
-//     if (!(name && trainer && day && startTime && endTime)) {
-//       return res.status(400).json({ message: "Fill in all required fields" });
-//     }
-//     let createdLesson;
-//     let additionalLessons = [];
-
-//     if (repeatsWeekly) {
-//       const repeatedIndex = new ObjectId();
-
-//       if (parsedRepeatEndDate) {
-//         console.log('value: ',parsedRepeatEndDate)
-//         const isConflict = await lessonService.checkRepeatedLesson(
-//           { ...lessonData, repeatedIndex },
-//           parsedRepeatEndDate
-//         );
-//         if (isConflict) {
-//           throw new Error("כבר קבועים שיעורים באחד ממועדים אלו");
-//         }
-//       }
-//       additionalLessons = await lessonService.createWeeklyLessons(
-//         { ...lessonData, repeatedIndex },
-//         parsedRepeatEndDate
-//       );
-//       createdLesson = await lessonService.createLesson({
-//         ...lessonData,
-//         repeatedIndex,
-//       });
-//     } else {
-//       const isConflict = await lessonService.checkRepeatedLesson({
-//         ...lessonData,
-//       });
-//       console.log('isConflict: ', isConflict)
-
-//       if (isConflict) {
-//         console.log(isConflict)
-//          return new Error("קבוע לך שיעור במועד זה");
-//       } else {
-//         createdLesson = await lessonService.createLesson(lessonData);
-//       }
-//     }
-
-//     if (repeatsWeekly) {
-//       return res.status(201).json([createdLesson, ...additionalLessons]);
-//     }
-
-//     res.status(201).json(createdLesson);
-//   } catch (error) {
-//     console.error('error: ',error);
-//     res.status(500).json({ message: error.message });
-//   }
-// }
 
 export async function createLesson(req, res) {
   const {
@@ -138,8 +54,6 @@ export async function createLesson(req, res) {
         );
 
         if (isConflict) {
-          console.log('isConflict: ', isConflict)
-
           return res.status(400).json({ message: 'כבר קבועים שיעורים באחד ממועדים אלו' });
         }
       }
@@ -231,7 +145,6 @@ export async function getWeeklyLessons(req, res) {
     );
     res.status(200).json(lessons);
   } catch (error) {
-    console.log("error: ", error);
     res.status(500).json({ message: error.message });
   }
 }

@@ -22,7 +22,6 @@ export async function createWeeklyLessons(lessonData, repeatEndDate) {
   let currentLessonDate = new Date(lessonData.day);
   const repeatedIndex = lessonData.repeatedIndex || new ObjectId(); 
 
-  console.log(repeatEndDate)
 
   if (!(repeatEndDate instanceof Date) || isNaN(repeatEndDate)) {
 
@@ -58,7 +57,6 @@ export async function checkRepeatedLesson(lessonData, repeatEndDate) {
       day: { $gte: new Date(lessonDay.getFullYear(), lessonDay.getMonth(), lessonDay.getDate()), $lte: new Date(repeatEndDate) },
       isApproved: true
     });
-    console.log('ok!!!')
     return existingLesson;
   }
 
@@ -134,7 +132,6 @@ export async function deleteLesson(lessonId, deleteAll) {
       await Lesson.findByIdAndDelete(lessonId);
     }
   } catch (error) {
-    console.log(error)
     throw new Error('Could not delete lesson');
   }
 }
@@ -163,7 +160,6 @@ export async function getLessonsForWeek(startOfWeek) {
       day: { $gte: startOfWeekUTC, $lte: endOfWeekUTC }
     });
 
-    console.log('lessons: ', lessons)
 
     lessons.sort((a, b) => {
       const dateA = new Date(a.day);
@@ -177,7 +173,6 @@ export async function getLessonsForWeek(startOfWeek) {
 
     return lessons;
   } catch (error) {
-    console.log('service error: ', error);
     throw new Error('Could not fetch lessons for the week');
   }
 }
@@ -185,7 +180,6 @@ export async function getLessonsForWeek(startOfWeek) {
 
 
 export async function approveLessonById(lessonId) {
-  console.log(lessonId)
   try {
     const updatedLesson = await Lesson.findByIdAndUpdate(
       lessonId,
@@ -197,7 +191,6 @@ export async function approveLessonById(lessonId) {
       throw new Error('Lesson not found');
     }
 
-    console.log('updated lesson: ',updatedLesson)
 
     return updatedLesson;
   } catch (error) {
