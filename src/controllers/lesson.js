@@ -149,6 +149,25 @@ export async function getWeeklyLessons(req, res) {
   }
 }
 
+export async function getDayLessons(req,res) {
+  const {date} = req.body
+
+  console.log(date)
+
+  try {
+    const lessons = await lessonService.getDayLessons(new Date(date));
+    console.log(lessons)
+    if (!lessons.message) {
+      res.status(200).json(lessons);
+
+    } else {
+      res.status(400).json({message: 'no lessons for today'})
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+}
+
 export async function updateLesson(req, res) {
   const { lessonId } = req.params;
   const updatedLessonData = req.body;

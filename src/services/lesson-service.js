@@ -200,3 +200,28 @@ export async function approveLessonById(lessonId) {
 }
 
 
+export async function getDayLessons(date) {
+  try {
+    if (!(date instanceof Date)) {
+      date = new Date(date); 
+    }
+
+    // Set start of the day
+    const startOfDay = new Date(date);
+    startOfDay.setUTCHours(0, 0, 0, 0); 
+
+    // Set end of the day
+    const endOfDay = new Date(date);
+    endOfDay.setUTCHours(23, 59, 59, 999); 
+
+    const lessons = await Lesson.find({
+      day: { $gte: startOfDay, $lt: endOfDay }
+    });
+
+    return lessons;
+  } catch(e) {
+    throw new Error('Could not fetch lessons for the day');
+  }
+}
+
+
