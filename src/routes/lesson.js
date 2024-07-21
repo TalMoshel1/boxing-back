@@ -8,6 +8,8 @@ router.post('/group', lessonController.createLesson);
 
 router.post('/requestPrivateLesson', lessonController.requestPrivateLesson);
 
+router.post('/days', lessonController.getDaysLessons)
+
 router.put('/approveLink/:lessonId', authenticateToken, lessonController.approvePrivateLesson)
 
 router.put('/:lessonId,', authenticateToken, lessonController.updateLesson);

@@ -216,3 +216,16 @@ export async function approvePrivateLesson(req, res) {
     res.status(500).json({ message: 'Error approving lesson', error: error.message });
   }
 }
+
+export async function getDaysLessons(req,res) {
+  const {start, end} = req.body
+  console.log(start, end)
+  try {
+    const lessons = await lessonService.getDaysLessons(start, end)
+    if (lessons) {
+      res.status(200).json(lessons)
+    }
+  } catch(e) {
+    res.status(500).json({message: "Error getting day's lessons: ", e})
+  }
+}

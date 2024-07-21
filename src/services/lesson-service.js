@@ -224,4 +224,26 @@ export async function getDayLessons(date) {
   }
 }
 
+export async function getDaysLessons(start, end) {
+
+  const startTime = new Date(start);
+  startTime.setUTCHours(0, 0, 0, 0); 
+
+  const endTime = new Date(end);
+  endTime.setUTCHours(23, 59, 59, 999); 
+
+
+  try {
+
+    const lessons = await Lesson.find({
+      day: { $gte: startTime, $lt: endTime }
+    });
+
+    return lessons;
+  } catch(e) {
+    throw new Error('Could not fetch lessons for the days');
+  }
+}
+
+
 
