@@ -2,7 +2,6 @@ import * as lessonService from "../services/lesson-service.js";
 import { ObjectId } from "mongodb";
 import { messageService } from "../services/message.js";
 
-
 export async function createLesson(req, res) {
   const {
     name,
@@ -21,7 +20,7 @@ export async function createLesson(req, res) {
       : null
     : null;
 
-  const dayOfWeek = new Date(day).toLocaleString('en-us', { weekday: 'short' })
+  const dayOfWeek = new Date(day).toLocaleString("en-us", { weekday: "short" });
 
   const lessonData = {
     name,
@@ -31,14 +30,14 @@ export async function createLesson(req, res) {
     startTime,
     endTime,
     repeatsWeekly,
-    type: 'group',
+    type: "group",
     isApproved: true,
-    dayOfWeek: dayOfWeek
+    dayOfWeek: dayOfWeek,
   };
 
   try {
     if (!(name && trainer && day && startTime && endTime)) {
-      return res.status(400).json({ message: 'Fill in all required fields' });
+      return res.status(400).json({ message: "Fill in all required fields" });
     }
 
     let createdLesson;
@@ -54,7 +53,9 @@ export async function createLesson(req, res) {
         );
 
         if (isConflict) {
-          return res.status(400).json({ message: 'כבר קבועים שיעורים באחד ממועדים אלו' });
+          return res
+            .status(400)
+            .json({ message: "כבר קבועים שיעורים באחד ממועדים אלו" });
         }
       }
 
@@ -72,8 +73,8 @@ export async function createLesson(req, res) {
         ...lessonData,
       });
       if (isConflict) {
-        return res.status(403).json({ message: 'קבוע לך שיעור במועד זה' });
-      } 
+        return res.status(403).json({ message: "קבוע לך שיעור במועד זה" });
+      }
       createdLesson = await lessonService.createLesson(lessonData);
     }
 
@@ -82,14 +83,23 @@ export async function createLesson(req, res) {
     }
     res.status(201).json(createdLesson);
   } catch (error) {
-    console.error('Error creating lesson:', error);
+    console.error("Error creating lesson:", error);
     res.status(500).json({ message: error.message });
   }
 }
 
 export async function requestPrivateLesson(req, res) {
-  const { day, startTime, endTime, studentName, studentPhone, studentMail, trainer } =
-    req.body; 
+  const {
+    day,
+    startTime,
+    endTime,
+    studentName,
+    studentPhone,
+    studentMail,
+    trainer,
+  } = req.body;
+
+
 
   const lessonData = {
     day,
@@ -98,16 +108,27 @@ export async function requestPrivateLesson(req, res) {
     studentName,
     studentPhone,
     studentMail,
-    trainer
+    trainer,
+    type: 'private',
+    isApproved: false
   };
 
   if (
-    !(day && startTime && endTime && studentName && studentPhone && studentMail && trainer)
+    !(
+      day &&
+      startTime &&
+      endTime &&
+      studentName &&
+      studentPhone &&
+      studentMail &&
+      trainer
+    )
   ) {
     return res.status(400).json({ message: "מלא את כל השדות" });
   }
   const createRequest = await lessonService.createLesson(lessonData);
 
+  console.log("created request: ",createRequest)
 
   if (createRequest) {
     const emailBody = `
@@ -121,7 +142,7 @@ export async function requestPrivateLesson(req, res) {
     ${startTime} - ${endTime}.
 
    לאישור האימון, פתח קישור:
-    http://localhost:3001/approveLink/${createRequest._id}
+   https://boxing-back.onrender.com/approveLink/${createRequest._id}
   `;
 
     const sendEmailToApprove = await messageService(
@@ -129,7 +150,7 @@ export async function requestPrivateLesson(req, res) {
       studentMail,
       "בקשה לאימון אישי",
       emailBody,
-      'davidaboxing@gmail.com'
+      "davidaboxing@gmail.com"
     );
 
     return res.status(201).json(createRequest);
@@ -149,19 +170,18 @@ export async function getWeeklyLessons(req, res) {
   }
 }
 
-export async function getDayLessons(req,res) {
-  const {date} = req.body
+export async function getDayLessons(req, res) {
+  const { date } = req.body;
 
-  console.log(date)
+  console.log(date);
 
   try {
     const lessons = await lessonService.getDayLessons(new Date(date));
-    console.log(lessons)
+    console.log(lessons);
     if (!lessons.message) {
       res.status(200).json(lessons);
-
     } else {
-      res.status(400).json({message: 'no lessons for today'})
+      res.status(400).json({ message: "no lessons for today" });
     }
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -203,29 +223,37 @@ export async function approvePrivateLesson(req, res) {
   const { lessonId } = req.params;
 
   try {
-    const doesPossibleToApprove = await lessonService.doesApprovePossible(lessonId)
+    const doesPossibleToApprove = await lessonService.doesApprovePossible(
+      lessonId
+    );
     if (doesPossibleToApprove) {
-    const approvedLesson = await lessonService.approveLessonById(lessonId);
-    res.status(200).json({ message: 'Lesson approved successfully', lesson: approvedLesson });
+      const approvedLesson = await lessonService.approveLessonById(lessonId);
+      res
+        .status(200)
+        .json({
+          message: "Lesson approved successfully",
+          lesson: approvedLesson,
+        });
     } else {
-      res.status(500).json({message: 'כבר יש לך שיעור במועד זה'})
+      res.status(500).json({ message: "כבר יש לך שיעור במועד זה" });
     }
-
   } catch (error) {
-    console.error('Error approving lesson:', error);
-    res.status(500).json({ message: 'Error approving lesson', error: error.message });
+    console.error("Error approving lesson:", error);
+    res
+      .status(500)
+      .json({ message: "Error approving lesson", error: error.message });
   }
 }
 
-export async function getDaysLessons(req,res) {
-  const {start, end} = req.body
-  console.log(start, end)
+export async function getDaysLessons(req, res) {
+  const { start, end } = req.body;
+  console.log(start, end);
   try {
-    const lessons = await lessonService.getDaysLessons(start, end)
+    const lessons = await lessonService.getDaysLessons(start, end);
     if (lessons) {
-      res.status(200).json(lessons)
+      res.status(200).json(lessons);
     }
-  } catch(e) {
-    res.status(500).json({message: "Error getting day's lessons: ", e})
+  } catch (e) {
+    res.status(500).json({ message: "Error getting day's lessons: ", e });
   }
 }

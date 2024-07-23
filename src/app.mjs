@@ -10,10 +10,7 @@ dotenv.config();
 
 const app = express();
 
-const allowedOrigins = [
-  "http://localhost:3001",
-  "https://boxing-front.onrender.com",
-];
+const allowedOrigins = ["http://localhost:3001", "https://boxing-front.onrender.com"];
 
 // Debug: Log allowedOrigins to verify its content
 
